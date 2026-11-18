@@ -1,0 +1,8 @@
+# Video only, causal readout and pointwise loss.
+_base_: main.yaml
+run_name: prior_style
+data:
+  use_audio: false
+readout: causal
+loss:
+  arm: pointwise

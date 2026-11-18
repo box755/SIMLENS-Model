@@ -1,0 +1,16 @@
+# Versions the released code was tested with.
+# Install the PyTorch build for your CUDA version first; see README.md.
+torch==2.11.0
+torchvision==0.26.0
+transformers==5.8.1
+peft==0.19.1
+accelerate==1.13.0
+numpy==2.4.4
+scipy==1.17.1
+scikit-learn==1.8.0
+h5py==3.16.0
+decord==0.6.0
+PyYAML==6.0.3
+safetensors==0.7.0
+tqdm>=4.66
+# FFmpeg is required as well and is installed separately.

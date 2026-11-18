@@ -1,0 +1,5 @@
+# Pointwise loss plus the bidirectional listwise term.
+_base_: main.yaml
+run_name: hybrid_loss
+loss:
+  arm: hybrid

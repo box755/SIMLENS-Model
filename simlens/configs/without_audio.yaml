@@ -1,0 +1,5 @@
+# Video only: the audio stream is removed.
+_base_: main.yaml
+run_name: without_audio
+data:
+  use_audio: false

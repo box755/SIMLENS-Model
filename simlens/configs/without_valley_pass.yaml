@@ -1,0 +1,5 @@
+# Listwise loss with the descending pass only.
+_base_: main.yaml
+run_name: without_valley_pass
+loss:
+  bidirectional: false

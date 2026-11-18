@@ -1,0 +1,9 @@
+# Keeps LoRA at its zero initialization and trains only the query embedding and the linear head.
+_base_: main.yaml
+run_name: readout_only
+lora:
+  freeze: true
+train:
+  max_steps: 1500
+  eval_every_steps: 250
+  save_every_steps: 250

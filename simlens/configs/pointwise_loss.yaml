@@ -1,0 +1,5 @@
+# Smooth L1 loss with total-variation regularization instead of the listwise loss.
+_base_: main.yaml
+run_name: pointwise_loss
+loss:
+  arm: pointwise

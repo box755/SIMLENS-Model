@@ -1,0 +1,48 @@
+{
+  "repository": "box755/SIMLENS-Model",
+  "tag": "v0.1.0",
+  "checkpoints": {
+    "42": {
+      "asset": "simlens-seed42-v0.1.0.zip",
+      "bytes": 37398449,
+      "sha256": "59383f537f20ea621806e1cf97329e8428475a6dc318f153b2f996fc9c0eae25",
+      "files": {
+        "adapter_config.json": "bb629b56cbc9d1d105e47a0cc5aebf67f81a3afb8f87e1777abc7437ffc4a179",
+        "adapter_model.safetensors": "c2f3b588284fd6c86032aeae5ef637a08d2c504c3edf011895e9429ec37c137e",
+        "head.pt": "e19f3cb37c51c7817e8d97a7e8995111c9dc6af91b8e8af7852af5e88d170740",
+        "meta.json": "d9f8683662d3c5efd5bf3faa074f6152d7c1e1971cd2742a91c3d6919cee2134",
+        "model_config.yaml": "f7aea680c5feaa7dd05c29af1f0f32e4264535b8b3078332c8e938b5e8bffdd5",
+        "MODEL_CARD.md": "fe144905526f3e84d428939632e1c6eeaa6daacc6564413ead366f7ddd9c0c07",
+        "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    },
+    "7": {
+      "asset": "simlens-seed7-v0.1.0.zip",
+      "bytes": 37400011,
+      "sha256": "a0507e669f1656cb38660cf20846ec13baa8e3486e75bae97b0f1d37ae31d1ff",
+      "files": {
+        "adapter_config.json": "707c5f620f987b7c173581144e59419be6b2aab96314872520daeaaab424104e",
+        "adapter_model.safetensors": "3fa91c201d93054d2316baf86e2491437fc7ade638e91b61236fb705956c3d2f",
+        "head.pt": "3d02f5a2a269973a66650cadfe823cb66517bdf6213bfd28fd0d91efc41d0b2e",
+        "meta.json": "8de310c1d0afaca7ba63ea4b64dcbcacd7c4a26b8c20e277417345f259991e2f",
+        "model_config.yaml": "1fdb4bba27d5462b3786498df0bab64ee21cca09c0c39853c1b4260181ef60ab",
+        "MODEL_CARD.md": "fe144905526f3e84d428939632e1c6eeaa6daacc6564413ead366f7ddd9c0c07",
+        "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    },
+    "123": {
+      "asset": "simlens-seed123-v0.1.0.zip",
+      "bytes": 37401860,
+      "sha256": "e0d35dd696d0d4455d97c954ec921f3697ba7027914f6d3b5a090c0579c807e7",
+      "files": {
+        "adapter_config.json": "791dd2a7da3b065e5bfa8d684fb49e2cf927ae1d890d92f0a4ee086015898d67",
+        "adapter_model.safetensors": "8682c464a6210181dd6f236922cbb9c63ec7f0723c098fe95172b0ad4573e698",
+        "head.pt": "80f29ed45c0f98a8768ecf64cad460530944bbe45f34a9782989efaf0223e601",
+        "meta.json": "487b6633829165403c6b3b042bf7a402bc57b11eef452bac53db409127336fb8",
+        "model_config.yaml": "ba05b9346a82b4a0a3b97eabd6c71cfb5872bdb95ef4bfdac61968c987b83e59",
+        "MODEL_CARD.md": "fe144905526f3e84d428939632e1c6eeaa6daacc6564413ead366f7ddd9c0c07",
+        "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    }
+  }
+}

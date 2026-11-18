@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use SIMLENS, please cite the paper below."
+title: "SIMLENS: Sound-Informed Multimodal LLMs for Full-Curve Video Engagement Prediction"
+type: software
+version: 0.1.0
+date-released: 2026-09-13
+license: Apache-2.0
+url: "https://github.com/box755/SIMLENS-Model"
+repository-code: "https://github.com/box755/SIMLENS-Model"
+authors:
+  - family-names: Wei
+    given-names: Ren-Siang
+  - family-names: Fu
+    given-names: Sheng-You
+  - family-names: Chen
+    given-names: Yen-Liang
+    email: ylchen@mgt.ncu.edu.tw
+preferred-citation:
+  type: conference-paper
+  title: "SIMLENS: Sound-Informed Multimodal LLMs for Full-Curve Video Engagement Prediction"
+  authors:
+    - family-names: Wei
+      given-names: Ren-Siang
+    - family-names: Fu
+      given-names: Sheng-You
+    - family-names: Chen
+      given-names: Yen-Liang
+  collection-title: "Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)"
+  year: 2027

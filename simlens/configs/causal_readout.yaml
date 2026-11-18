@@ -1,0 +1,4 @@
+# Reads the scores from the last visual token of each second instead of suffix queries.
+_base_: main.yaml
+run_name: causal_readout
+readout: causal

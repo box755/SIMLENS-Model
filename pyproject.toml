@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simlens-model"
+version = "0.1.0"
+description = "Audio-visual full-curve video replay prediction with SIMLENS"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  {name = "Ren-Siang Wei"},
+  {name = "Sheng-You Fu"},
+  {name = "Yen-Liang Chen", email = "ylchen@mgt.ncu.edu.tw"},
+]
+dynamic = ["dependencies"]
+
+[project.optional-dependencies]
+demo = ["fastapi==0.139.2", "uvicorn==0.51.0", "python-multipart==0.0.32"]
+
+[project.scripts]
+simlens-predict = "simlens.cli.predict:main"
+simlens-train = "simlens.cli.train:main"
+simlens-evaluate = "simlens.cli.evaluate:main"
+simlens-score = "simlens.cli.score:main"
+
+[project.urls]
+Repository = "https://github.com/box755/SIMLENS-Model"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+include = ["simlens*"]
+
+[tool.setuptools.package-data]
+simlens = ["configs/*.yaml"]

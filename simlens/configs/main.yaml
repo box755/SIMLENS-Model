@@ -1,0 +1,87 @@
+# Main SIMLENS configuration: audio and video input, suffix-query readout and the bidirectional listwise loss.
+run_name: simlens_s42
+seed: 42
+output_dir: outputs
+# Mr.HiSum files, relative to the working directory
+paths:
+  videos: data/mrhisum/videos
+  h5: data/mrhisum/mr_hisum.h5
+  metadata: data/mrhisum/metadata.csv
+  split: data/mrhisum/mr_hisum_split.json
+data:
+  fps_in: 2.0
+  px: 112
+  max_pixels: 12544
+  # Length in seconds of the groups in which the processor interleaves video and audio
+  seconds_per_chunk: 1.0
+  use_audio: true
+  task_prompt: video
+  # Only the first `max_sec` seconds of a video are used
+  max_sec: 300
+  num_workers: 0
+  pin_memory: false
+model:
+  base_model: Qwen/Qwen2.5-Omni-7B
+  revision: ae9e1690543ffd5c0221dc27f79834d0294cba00
+  # Positional settings the backbone is expected to have, checked when the model is built
+  expected_positional_chunk_seconds: 2
+  expected_position_ids_per_second: 25
+  # Set to true to group position ids by `data.seconds_per_chunk` instead of the backbone's value
+  sync_position_chunk: false
+  cuda_mem_fraction: 0.90
+  head_dropout: 0.0
+  vision_chunk_t: 0
+  # Number of consecutive audio embeddings averaged into one token
+  audio_pool_factor: 4
+lora:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
+  bias: none
+loss:
+  # One of listwise, pointwise, hybrid
+  arm: listwise
+  tv_weight: 0.05
+  tv_order: 2
+  delta_weight: 0.3
+  hybrid_listmle_weight: 0.5
+  # Set to false to keep only the descending pass of the listwise loss
+  bidirectional: true
+# One of suffix, causal
+readout: suffix
+optim:
+  lr: 1.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+  warmup_ratio: 0.03
+train:
+  epochs: 1
+  grad_accum: 4
+  max_grad_norm: 1.0
+  # null trains for `epochs` passes over the training set
+  max_steps: null
+  # null decays the learning rate over all training steps
+  cosine_horizon_steps: null
+  log_every_steps: 10
+  eval_every_steps: 500
+  save_every_steps: 500
+  # Evaluations without improvement before training stops
+  early_stop_patience: 3
+  early_stop_min_delta: 0.005
+  best_metric: per_video_spearman
+  # Consecutive out-of-memory videos tolerated before training stops
+  max_consec_oom: 10
+  # Number of validation videos used during training
+  val_limit: 150
+eval:
+  split: test
+  full_curve: true
+  official_map: true
+  official_f1: true
+  test_limit: null
+  dump_predictions: true
+logging:
+  metrics_jsonl: true
+package:
+  zip_on_finish: false

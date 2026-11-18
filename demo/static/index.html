@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIMLENS demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23fff'/%3E%3Cpath d='M4 22c4 0 4-12 8-12s4 9 8 9 4-6 8-6' fill='none' stroke='%23e34948' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: light;
+    --title: #0a0a0a; --ink: #363636; --text: #4a4a4a; --muted: #7a7a7a;
+    --line: #dbdbdb; --grid: #e6e6e6; --axis: #c4c4c4; --soft: #fafafa;
+    --curve: #e34948; --link: #3273dc;
+  }
+  @media (min-width: 1024px) { html { font-size: clamp(16px, calc(0.9375vw - 2px), 22px); } }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: #fff; color: var(--text);
+    font: 1rem/1.5 "Segoe UI", system-ui, -apple-system, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  }
+  :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .wrap { max-width: 60rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+  h1 { margin: 0; font-size: 1.9rem; line-height: 1.15; font-weight: 700; color: var(--title); }
+  .tagline { margin: .35rem 0 0; font-size: 1.1rem; }
+  .toplink { color: var(--link); text-decoration: none; white-space: nowrap; }
+  .toplink:hover { text-decoration: underline; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .drop {
+    display: block; padding: 4.5rem 1.25rem; text-align: center; cursor: pointer;
+    border: 2px dashed var(--line); border-radius: 12px; background: var(--soft);
+    transition: border-color .15s, background-color .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--link); background: #f3f7fe; }
+  #file:focus-visible + .drop { outline: 2px solid var(--link); outline-offset: 3px; }
+  .drop svg { width: 2.75rem; height: 2.75rem; fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .drop .hint { display: block; margin-top: .75rem; font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+  .drop .sub { display: block; margin-top: .25rem; font-size: .95rem; color: var(--muted); }
+
+  #player { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: 46vh; background: #000; border-radius: 10px; }
+  .status {
+    display: flex; align-items: center; gap: .75rem; margin-top: 1rem; padding: 1rem 1.1rem;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--soft); color: var(--ink);
+  }
+  .status.error { border-color: #f0b4b4; background: #fff5f5; color: #a12727; }
+  #elapsed { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .spin { flex: none; width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--ink); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .charthead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; margin: 1.5rem 0 .25rem; }
+  h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--title); }
+  .meta { font-size: .95rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .badge {
+    display: inline-block; margin-left: .5rem; padding: .1em .65em; vertical-align: .15em;
+    border: 1px solid #f0d48a; border-radius: 9999px; background: #fff8e1; color: #7a5200;
+    font-size: .75rem; font-weight: 600; letter-spacing: .02em;
+  }
+  #chartwrap { position: relative; }
+  #chart { display: block; width: 100%; cursor: pointer; touch-action: pan-y; border-radius: 6px; }
+  #chart text { font-family: inherit; font-variant-numeric: tabular-nums; }
+  #chart .tick { font-size: .75rem; fill: var(--muted); }
+  #chart .grid { stroke: var(--grid); shape-rendering: crispEdges; }
+  #chart .axis { stroke: var(--axis); shape-rendering: crispEdges; }
+  #chart .area { fill: var(--curve); fill-opacity: .08; }
+  #chart .curve { fill: none; stroke: var(--curve); stroke-width: .14rem; stroke-linejoin: round; stroke-linecap: round; }
+  #chart .high { fill: var(--curve); stroke: #fff; stroke-width: 2; }
+  #chart .low { fill: #fff; stroke: var(--curve); stroke-width: 2; }
+  #chart .peaklabel { font-size: .75rem; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+  #chart .cross { stroke: var(--muted); shape-rendering: crispEdges; }
+  #chart .ring { fill: none; stroke: var(--ink); stroke-width: 2; }
+  #chart .playline { stroke: var(--ink); stroke-width: 1.5; }
+  #chart .playdot { fill: var(--ink); stroke: #fff; stroke-width: 2; }
+  #playtag rect { fill: var(--ink); }
+  #playtag text { fill: #fff; font-size: .7rem; font-weight: 600; }
+  #tooltip {
+    position: absolute; z-index: 5; pointer-events: none; padding: .35rem .6rem; white-space: nowrap;
+    background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(10, 10, 10, .12);
+    font-size: .9rem; line-height: 1.4; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .08s;
+  }
+  #tooltip.on { opacity: 1; }
+  #tooltip b { color: var(--ink); }
+  .note { margin: .5rem 0 0; font-size: .95rem; color: var(--muted); }
+
+  .moments { display: flex; flex-wrap: wrap; gap: .6rem 2.25rem; margin-top: 1.1rem; }
+  .moments .group { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+  .moments .label { display: inline-flex; align-items: center; gap: .45rem; margin-right: .15rem; font-weight: 600; color: var(--ink); }
+  .key { width: .7rem; height: .7rem; border-radius: 50%; background: var(--curve); }
+  .key.low { background: #fff; border: 2px solid var(--curve); }
+  .chip {
+    height: 2.1em; padding: 0 .9em; border: 1.5px solid var(--line); border-radius: 9999px; background: #fff;
+    font: inherit; font-size: .95rem; font-variant-numeric: tabular-nums; color: var(--ink); cursor: pointer;
+  }
+  .chip:hover { border-color: #b5b5b5; background: var(--soft); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.5rem; }
+  .btn {
+    height: 2.5em; padding: 0 1.15em; border: 1px solid var(--line); border-radius: 9999px; background: #fff;
+    font: inherit; color: var(--ink); cursor: pointer;
+  }
+  .btn:hover { border-color: #b5b5b5; }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 600; }
+  .btn.primary:hover { background: #2b2b2b; border-color: #2b2b2b; }
+  details { margin-top: 1.25rem; }
+  summary { width: fit-content; cursor: pointer; color: var(--link); }
+  .tablebox { max-height: 18rem; overflow: auto; margin-top: .6rem; border: 1px solid var(--line); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
+  th, td { padding: .35rem .9rem; text-align: right; border-bottom: 1px solid var(--grid); }
+  th:first-child, td:first-child { text-align: left; }
+  th { position: sticky; top: 0; background: var(--soft); color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 1.5rem 1rem 3rem; }
+    header { flex-direction: column; align-items: flex-start; gap: .5rem; }
+    .drop { padding: 3rem 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } .drop, #tooltip { transition: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div>
+      <h1>SIMLENS</h1>
+      <p class="tagline">Upload a video to see which moments viewers are likely to replay.</p>
+    </div>
+    <a class="toplink" href="https://box755.github.io/simlens-page/" target="_blank" rel="noopener">Project page</a>
+  </header>
+
+  <input id="file" class="sr-only" type="file" accept="video/*">
+  <label id="drop" class="drop" for="file">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+    <span class="hint">Drop a video here, or click to choose one</span>
+    <span class="sub">MP4 or WebM<span id="local" hidden> · analyzed on this computer</span></span>
+  </label>
+
+  <section id="stage" hidden>
+    <video id="player" controls playsinline></video>
+
+    <div id="status" class="status" role="status">
+      <span id="spin" class="spin"></span>
+      <span id="statusmsg"></span>
+      <span id="elapsed" aria-hidden="true"></span>
+    </div>
+
+    <div id="result" hidden>
+      <div class="charthead">
+        <h2>Predicted replay curve <span id="mockbadge" class="badge" hidden>MOCK · made-up curve</span></h2>
+        <span id="meta" class="meta"></span>
+      </div>
+      <div id="chartwrap">
+        <svg id="chart" tabindex="0" role="slider" aria-valuemin="0"
+             aria-label="Predicted replay curve. Use the arrow keys to move through the video."></svg>
+        <div id="tooltip"></div>
+      </div>
+      <p class="note">Scores are relative within this video: 0 is its lowest moment, 100 its highest. Click the curve to jump there.</p>
+      <div id="moments" class="moments"></div>
+    </div>
+
+    <div id="actions" class="actions" hidden>
+      <button class="btn primary" id="again" type="button">Analyze another video</button>
+      <button class="btn" id="dljson" type="button">Download JSON</button>
+      <button class="btn" id="dlcsv" type="button">Download CSV</button>
+    </div>
+
+    <details id="tableview" hidden>
+      <summary>Scores per second</summary>
+      <div class="tablebox"><table id="datatable"></table></div>
+    </details>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const fileIn = $('file'), drop = $('drop'), stage = $('stage'), player = $('player');
+  const statusBox = $('status'), statusMsg = $('statusmsg'), elapsed = $('elapsed');
+  const result = $('result'), actions = $('actions'), tableview = $('tableview');
+  const svg = $('chart'), wrap = $('chartwrap'), tip = $('tooltip'), moments = $('moments');
+
+  // Model scores, their 0-100 display values, the number of seconds and the inference time.
+  let raw = [], disp = [], T = 0, inferMs = 0;
+  let peaks = [], valleys = [];
+  // Chart width, font scale, margins and the x and y scales.
+  let W = 0, k = 1, M = null, X = null, Y = null;
+  let busy = false, videoUrl = null, timer = 0, raf = 0;
+
+  const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  if (['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)) $('local').hidden = false;
+
+  fileIn.addEventListener('change', () => { const f = fileIn.files[0]; fileIn.value = ''; if (f) start(f); });
+  $('again').addEventListener('click', () => fileIn.click());
+  window.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  window.addEventListener('dragleave', e => { if (!e.relatedTarget) drop.classList.remove('over'); });
+  window.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    const f = e.dataTransfer.files[0];
+    if (f && !busy) start(f);
+  });
+
+  // Upload the file to the server and show the result.
+  function start(file) {
+    busy = true; T = 0;
+    cancelAnimationFrame(raf);
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    videoUrl = URL.createObjectURL(file);
+    player.src = videoUrl;
+    drop.hidden = true; stage.hidden = false;
+    result.hidden = actions.hidden = tableview.hidden = true;
+    statusBox.hidden = false; statusBox.classList.remove('error'); $('spin').hidden = false;
+    statusMsg.textContent = 'Analyzing the video…';
+    const t0 = performance.now();
+    const tick = () => { elapsed.textContent = `${Math.round((performance.now() - t0) / 1000)} s`; };
+    tick(); timer = setInterval(tick, 500);
+
+    const body = new FormData(); body.append('file', file);
+    fetch('/api/predict', { method: 'POST', body })
+      .catch(() => { throw new Error('The server did not respond. Check that demo/server.py is still running.'); })
+      .then(r => r.json().catch(() => { throw new Error(`The server returned an error (${r.status}).`); }))
+      .then(d => {
+        if (d.error) throw new Error(d.error);
+        if (!Array.isArray(d.scores) || d.scores.length < 2) throw new Error('The server returned no scores.');
+        show(d);
+      })
+      .catch(fail)
+      .finally(() => { clearInterval(timer); busy = false; });
+  }
+
+  function fail(err) {
+    statusBox.classList.add('error'); $('spin').hidden = true; elapsed.textContent = '';
+    statusMsg.textContent = `This video could not be analyzed. ${err.message || err}`;
+    actions.hidden = false; $('dljson').hidden = $('dlcsv').hidden = true;
+  }
+
+  // Rescale the scores to 0-100, pick the highest and lowest moments and draw everything.
+  function show(d) {
+    raw = d.scores; T = raw.length; inferMs = d.infer_ms || 0;
+    const lo = Math.min(...raw), hi = Math.max(...raw);
+    disp = raw.map(v => hi > lo ? 100 * (v - lo) / (hi - lo) : 50);
+    const apart = Math.max(5, Math.round(T / 12));
+    peaks = extrema(disp, 1, apart); valleys = extrema(disp, -1, apart);
+
+    statusBox.hidden = true;
+    result.hidden = actions.hidden = tableview.hidden = false;
+    $('dljson').hidden = $('dlcsv').hidden = false;
+    $('mockbadge').hidden = !d.mock;
+    describe(); drawChart(); drawMoments(); drawTable();
+  }
+
+  // Say how much of the video was analyzed and how long it took.
+  function describe() {
+    if (!T) return;
+    const total = player.duration, took = `${(inferMs / 1000).toFixed(1)} s`;
+    $('meta').textContent = isFinite(total) && total > T + 1.5
+      ? `First ${mmss(T)} of ${mmss(total)} analyzed in ${took}`
+      : `${mmss(T)} analyzed in ${took}`;
+  }
+
+  // Return up to three local maxima (dir = 1) or minima (dir = -1) at least `apart` seconds apart, in time order.
+  function extrema(a, dir, apart) {
+    const w = Math.max(2, Math.round(a.length / 40)), found = [];
+    for (let i = 0; i < a.length; i++) {
+      let local = true;
+      for (let j = Math.max(0, i - w); j <= Math.min(a.length - 1, i + w) && local; j++) if (dir * a[j] > dir * a[i]) local = false;
+      if (local) found.push(i);
+    }
+    found.sort((i, j) => dir * (a[j] - a[i]));
+    const picked = [];
+    for (const i of found) {
+      if (picked.every(p => Math.abs(p - i) >= apart)) picked.push(i);
+      if (picked.length === 3) break;
+    }
+    return picked.sort((x, y) => x - y);
+  }
+
+  // Spacing in seconds of the ticks on the time axis.
+  function tickStep(seconds) {
+    for (const s of [15, 30, 60, 120, 300, 600]) if (seconds / s <= 9) return s;
+    return 1200;
+  }
+
+  // Draw the curve, the axes, the marked moments and the playhead as SVG.
+  function drawChart() {
+    if (!T) return;
+    k = parseFloat(getComputedStyle(document.documentElement).fontSize) / 16;
+    W = wrap.clientWidth;
+    const H = Math.round(270 * k);
+    M = { l: 38 * k, r: 18 * k, t: 42 * k, b: 28 * k };
+    X = t => M.l + (W - M.l - M.r) * t / (T - 1);
+    Y = v => M.t + (H - M.t - M.b) * (1 - v / 100);
+    const px = v => Math.round(v) + 0.5, y0 = px(Y(0)), p = [];
+
+    for (const v of [100, 50, 0]) {
+      p.push(`<line class="${v ? 'grid' : 'axis'}" x1="${M.l}" x2="${W - M.r}" y1="${px(Y(v))}" y2="${px(Y(v))}"/>`,
+             `<text class="tick" x="${M.l - 8 * k}" y="${Y(v) + 4 * k}" text-anchor="end">${v}</text>`);
+    }
+    for (let t = 0, step = tickStep(T); t <= T - 1; t += step) {
+      p.push(`<line class="axis" x1="${px(X(t))}" x2="${px(X(t))}" y1="${y0}" y2="${y0 + 5 * k}"/>`,
+             `<text class="tick" x="${X(t)}" y="${y0 + 19 * k}" text-anchor="middle">${mmss(t)}</text>`);
+    }
+
+    const line = disp.map((v, t) => `${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join(' L ');
+    p.push(`<path class="area" d="M ${X(0)},${y0} L ${line} L ${X(T - 1)},${y0} Z"/>`, `<path class="curve" d="M ${line}"/>`);
+
+    for (const i of valleys) p.push(`<circle class="low" cx="${X(i)}" cy="${Y(disp[i])}" r="${4 * k}"/>`);
+    for (const i of peaks) {
+      p.push(`<circle class="high" cx="${X(i)}" cy="${Y(disp[i])}" r="${4.5 * k}"/>`,
+             `<text class="peaklabel" x="${clamp(X(i), M.l + 12 * k, W - M.r - 12 * k)}" y="${Y(disp[i]) - 10 * k}" text-anchor="middle">${mmss(i)}</text>`);
+    }
+
+    const tw = 40 * k, th = 18 * k, tagTop = 4 * k;
+    p.push(`<g id="hover" visibility="hidden"><line class="cross" y1="${M.t}" y2="${y0}"/><circle class="ring" r="${5.5 * k}"/></g>`,
+           `<g id="playhead"><line class="playline" y1="${tagTop + th}" y2="${y0}"/><circle class="playdot" r="${4.5 * k}"/>` +
+           `<g id="playtag"><rect x="${-tw / 2}" y="${tagTop}" width="${tw}" height="${th}" rx="${4 * k}"/>` +
+           `<text y="${tagTop + th * 0.72}" text-anchor="middle"></text></g></g>`);
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('height', H);
+    svg.setAttribute('aria-valuemax', T - 1);
+    svg.innerHTML = p.join('');
+    updatePlayhead();
+  }
+
+  // Move the playhead to the current playback time.
+  function updatePlayhead() {
+    const g = svg.querySelector('#playhead');
+    if (!g || !T) return;
+    const t = clamp(player.currentTime || 0, 0, T - 1), i = Math.floor(t), x = X(t);
+    const v = disp[i] + (disp[Math.min(T - 1, i + 1)] - disp[i]) * (t - i);
+    const ln = g.querySelector('line'), dot = g.querySelector('circle'), tag = g.querySelector('#playtag');
+    ln.setAttribute('x1', x); ln.setAttribute('x2', x);
+    dot.setAttribute('cx', x); dot.setAttribute('cy', Y(v));
+    tag.setAttribute('transform', `translate(${clamp(x, 20 * k, W - 20 * k)} 0)`);
+    tag.querySelector('text').textContent = mmss(t);
+    svg.setAttribute('aria-valuenow', Math.round(t));
+    svg.setAttribute('aria-valuetext', `${mmss(t)}, score ${Math.round(v)} of 100`);
+  }
+
+  const loop = () => { updatePlayhead(); raf = requestAnimationFrame(loop); };
+  player.addEventListener('play', () => { cancelAnimationFrame(raf); loop(); });
+  for (const ev of ['pause', 'ended']) player.addEventListener(ev, () => cancelAnimationFrame(raf));
+  for (const ev of ['timeupdate', 'seeking', 'seeked']) player.addEventListener(ev, updatePlayhead);
+  for (const ev of ['loadedmetadata', 'durationchange']) player.addEventListener(ev, describe);
+  window.addEventListener('resize', drawChart);
+
+  // Hovering shows the score; clicking and the arrow keys seek the video.
+  const secondAt = e => {
+    const r = svg.getBoundingClientRect();
+    return clamp((e.clientX - r.left - M.l) / (W - M.l - M.r), 0, 1) * (T - 1);
+  };
+  const seek = t => { player.currentTime = clamp(t, 0, T - 1); updatePlayhead(); };
+  svg.addEventListener('pointermove', e => {
+    if (!T) return;
+    const i = Math.round(secondAt(e)), g = svg.querySelector('#hover'), x = X(i), y = Y(disp[i]);
+    g.setAttribute('visibility', 'visible');
+    g.querySelector('line').setAttribute('x1', Math.round(x) + 0.5);
+    g.querySelector('line').setAttribute('x2', Math.round(x) + 0.5);
+    g.querySelector('circle').setAttribute('cx', x);
+    g.querySelector('circle').setAttribute('cy', y);
+    tip.innerHTML = `<b>${mmss(i)}</b> · score ${Math.round(disp[i])}`;
+    tip.classList.add('on');
+    let left = x + 12 * k;
+    if (left + tip.offsetWidth > W) left = x - tip.offsetWidth - 12 * k;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${Math.max(0, y - tip.offsetHeight - 10 * k)}px`;
+  });
+  svg.addEventListener('pointerleave', () => {
+    tip.classList.remove('on');
+    const g = svg.querySelector('#hover'); if (g) g.setAttribute('visibility', 'hidden');
+  });
+  svg.addEventListener('click', e => { if (T) seek(secondAt(e)); });
+  svg.addEventListener('keydown', e => {
+    if (!T) return;
+    const step = { ArrowLeft: -5, ArrowRight: 5, ArrowDown: -1, ArrowUp: 1 }[e.key];
+    const t = step ? (player.currentTime || 0) + step : e.key === 'Home' ? 0 : e.key === 'End' ? T - 1 : null;
+    if (t === null) return;
+    e.preventDefault(); seek(t);
+  });
+
+  // Buttons that jump to the highest and lowest moments.
+  function drawMoments() {
+    const chips = a => a.map(i => `<button class="chip" type="button" data-t="${i}" title="Play from ${mmss(i)}">${mmss(i)}</button>`).join('');
+    moments.innerHTML =
+      `<div class="group"><span class="label"><i class="key"></i>Highest moments</span>${chips(peaks)}</div>` +
+      `<div class="group"><span class="label"><i class="key low"></i>Lowest moments</span>${chips(valleys)}</div>`;
+  }
+  moments.addEventListener('click', e => {
+    const b = e.target.closest('.chip');
+    if (!b) return;
+    seek(+b.dataset.t);
+    player.play().catch(() => {});
+  });
+
+  // Table view and downloads of the scores.
+  function drawTable() {
+    $('datatable').innerHTML = '<thead><tr><th>Time</th><th>Score (0–100)</th><th>Model output</th></tr></thead><tbody>' +
+      raw.map((v, t) => `<tr><td>${mmss(t)}</td><td>${disp[t].toFixed(1)}</td><td>${v}</td></tr>`).join('') + '</tbody>';
+  }
+  const download = (name, text, type) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $('dljson').addEventListener('click', () => download('simlens_curve.json',
+    JSON.stringify({ duration_s: T, scores: raw, display_0_100: disp.map(v => +v.toFixed(1)) }, null, 1), 'application/json'));
+  $('dlcsv').addEventListener('click', () => download('simlens_curve.csv',
+    'second,score_raw,score_0_100\n' + raw.map((v, t) => `${t},${v},${disp[t].toFixed(1)}`).join('\n'), 'text/csv'));
+})();
+</script>
+</body>
+</html>

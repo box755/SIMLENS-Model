@@ -1,0 +1,5 @@
+# Readout-only training without the audio stream.
+_base_: readout_only.yaml
+run_name: readout_only_without_audio
+data:
+  use_audio: false
